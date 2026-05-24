@@ -1,9 +1,9 @@
 cmpp网关模拟器
 
 支持消息类型:
+
 1.心跳检测及回应
-ActiveTest, 
-ActiveTestResp
+ActiveTest,ActiveTestResp
 
 2.连接及回应
 Connect,ConnectResp
