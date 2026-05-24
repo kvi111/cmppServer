@@ -1,0 +1,201 @@
+/**
+ * Project Name cmpp-gateway
+ * File Name package-info.java
+ * Package Name com.kvi.cmpp.gateway.utils
+ * Create Time 2018年3月19日
+ * Create by name：kvi
+ * Copyright © 2015, 2017, kvi. All rights reserved.
+ */
+package com.kvi.cmpp.gateway.utils;
+
+import java.io.DataOutputStream;
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+/**
+ * 短信接口辅助工具类
+ */
+public class MsgUtils {
+    private static Logger    logger   = LoggerFactory.getLogger(MsgUtils.class);
+    private static int sequenceId = 0;//序列编号
+    private static long msgIdSequence = 0; // msgId 生成序号
+
+    /**
+     * 序列 自增
+     */
+    public static int getSequence() {
+        ++sequenceId;
+        if (sequenceId > 255) {
+            sequenceId = 0;
+        }
+        return sequenceId;
+    }
+
+    /**
+     * 生成唯一消息标识 msgId（8 字节）
+     * 高 32 位：Unix 时间戳（秒），低 32 位：自增序号
+     * 确保在同一网关内生成的 msgId 唯一，用于 SP 关联 submit 和状态报告
+     */
+    public static synchronized long getMsgId() {
+        return (System.currentTimeMillis() / 1000) << 32 | (++msgIdSequence & 0xFFFFFFFFL);
+    }
+
+    /**
+     * 时间戳的明文,由客户端产生,格式为MMDDHHMMSS，即月日时分秒，10位数字的整型，右对齐 。
+     */
+    public static String getTimestamp() {
+        DateFormat format = new SimpleDateFormat("MMddHHmmss");
+        return format.format(new Date());
+    }
+
+    /**
+     * 状态报告时间格式,格式为YYMMDDHHMM，即年月日时分，10位数字 。
+     */
+    public static String getReportTimestamp() {
+        DateFormat format = new SimpleDateFormat("yyMMddHHmm");
+        return format.format(new Date());
+    }
+
+    /**
+     * Connect 成功后返回，其值通过单向MD5 hash计算得出，表示如下：
+     * AuthenticatorISMG =MD5（Status+AuthenticatorSource+shared secret）
+     * @return
+     */
+    public static byte[] getAuthenticatorISMG(int statis, String AuthenticatorSource, String secret) {
+        try {
+            MessageDigest md5 = MessageDigest.getInstance("MD5");
+            byte[] data = (statis +AuthenticatorSource + secret).getBytes();
+            return md5.digest(data);
+        } catch (NoSuchAlgorithmException e) {
+            logger.error("拼接getAuthenticatorISMG失败：" + e.getMessage());
+            return null;
+        }
+    }
+    public static byte[] getAuthenticatorSource(String spId, String secret,String timestamp) {
+    	try {
+			MessageDigest md5 = MessageDigest.getInstance("MD5");
+			String data = spId + "\0\0\0\0\0\0\0\0\0" + secret + timestamp;
+			byte[] digest = md5.digest(data.getBytes());
+			return digest;
+		} catch (NoSuchAlgorithmException e) {
+			logger.error("SP链接到ISMG拼接AuthenticatorSource失败:{}" , e);
+			return null;
+		}
+    }
+
+    /**
+     * 向流中写入指定字节长度的字符串，不足时补0
+     * @param dous:要写入的流对象
+     * @param s:要写入的字符串
+     * @param len:写入长度,不足补0
+     */
+    public static void writeString(DataOutputStream dous, String s, int len) {
+
+        try {
+            byte[] data = s.getBytes("gb2312");
+            if (data.length > len) {
+                logger.error("向流中写入的字符串超长！要写长度" + len + " 字符串是:" + s);
+            }
+            int srcLen = data.length;
+            dous.write(data);
+            while (srcLen < len) {
+                dous.write('\0');
+                srcLen++;
+            }
+        } catch (IOException e) {
+            logger.error("向流中写入指定字节长度的字符串失败：" + e.getMessage());
+        }
+    }
+
+    /**
+     * 从流中读取指定长度的字节，转成字符串返回
+     * @param ins:要读取的流对象
+     * @param len:要读取的字符串长度
+     * @return:读取到的字符串
+     */
+    public static String readString(java.io.DataInputStream ins, int len) {
+        byte[] b = new byte[len];
+        try {
+            ins.read(b);
+            String s = new String(b);
+            s = s.trim();
+            return s;
+        } catch (IOException e) {
+            return "";
+        }
+    }
+
+    /**
+     * 截取字节
+     * @param msg
+     * @param start
+     * @param end
+     * @return
+     */
+    public static byte[] getMsgBytes(byte[] msg, int start, int end) {
+        byte[] msgByte = new byte[end - start];
+        int j = 0;
+        for (int i = start; i < end; i++) {
+            msgByte[j] = msg[i];
+            j++;
+        }
+        return msgByte;
+    }
+
+    /**  
+     * UCS2解码  
+     *   
+     * @param src  
+     *            UCS2 源串  
+     * @return 解码后的UTF-16BE字符串  
+     */
+    public static String DecodeUCS2(String src) {
+        byte[] bytes = new byte[src.length() / 2];
+        for (int i = 0; i < src.length(); i += 2) {
+            bytes[i / 2] = (byte) (Integer.parseInt(src.substring(i, i + 2), 16));
+        }
+        String reValue = "";
+        try {
+            reValue = new String(bytes, "UTF-16BE");
+        } catch (UnsupportedEncodingException e) {
+            reValue = "";
+        }
+        return reValue;
+
+    }
+
+    /**  
+     * UCS2编码  
+     *   
+     * @param src  
+     *            UTF-16BE编码的源串  
+     * @return 编码后的UCS2串  
+     */
+    public static String EncodeUCS2(String src) {
+        byte[] bytes;
+        try {
+            bytes = src.getBytes("UTF-16BE");
+        } catch (UnsupportedEncodingException e) {
+            bytes = new byte[0];
+        }
+        StringBuffer reValue = new StringBuffer();
+        StringBuffer tem = new StringBuffer();
+        for (int i = 0; i < bytes.length; i++) {
+            tem.delete(0, tem.length());
+            tem.append(Integer.toHexString(bytes[i] & 0xFF));
+            if (tem.length() == 1) {
+                tem.insert(0, '0');
+            }
+            reValue.append(tem);
+        }
+        return reValue.toString().toUpperCase();
+    }
+}

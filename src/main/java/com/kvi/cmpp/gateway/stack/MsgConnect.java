@@ -1,0 +1,74 @@
+/**
+ * Project Name cmpp-gateway
+ * File Name package-info.java
+ * Package Name com.kvi.cmpp.gateway.stack
+ * Create Time 2018年3月19日
+ * Create by name：kvi
+ * Copyright © 2015, 2017, kvi. All rights reserved.
+ */
+package com.kvi.cmpp.gateway.stack;
+
+import com.kvi.cmpp.gateway.utils.Utils;
+
+/**
+ * SP请求连接到ISMG消息体定义CMPP_CONNECT操作的目的是SP向ISMG注册作为一个合法SP身份，
+ * 若注册成功后即建立了应用层的连接，此后SP可以通过此ISMG接收和发送短信。<br/>
+ * Source_Addr:Octet String	源地址，此处为SP_Id，即SP的企业代码。<br/>
+ * AuthenticatorSource:Octet String	用于鉴别源地址。其值通过单向MD5 hash计算得出，表示如下：
+ * AuthenticatorSource =MD5（Source_Addr+9 字节的0 +shared secret+timestamp）
+ * Shared secret 由中国移动与源地址实体事先商定，timestamp格式为：MMDDHHMMSS，即月日时分秒，10位。<br/>
+ * Version:Unsigned Integer	双方协商的版本号(高位4bit表示主版本号,低位4bit表示次版本号)，对于3.0的版本，高4bit为3，低4位为0<br/>
+ * Timestamp:Unsigned Integer	时间戳的明文,由客户端产生,格式为MMDDHHMMSS，即月日时分秒，10位数字的整型，右对齐 。<br/>
+ * Create by: name：kvi <br>
+ * Create Time: 2017年5月12日<br>
+ */
+public class MsgConnect extends MsgHead {
+    private String sourceAddr;          //源地址，此处为SP_Id，即SP的企业代码。
+    private byte[] authenticatorSource; //用于鉴别源地址。其值通过单向MD5 hash计算得出，表示如下：AuthenticatorSource = MD5（Source_Addr+9 字节的0 +shared secret+timestamp） Shared secret 由中国移动与源地址实体事先商定，timestamp格式为：MMDDHHMMSS，即月日时分秒，10位。
+    private byte   version;             //双方协商的版本号(高位4bit表示主版本号,低位4bit表示次版本号)，对于3.0的版本，高4bit为3，低4位为0
+    private int    timestamp;           //时间戳的明文,由客户端产生,格式为MMDDHHMMSS，即月日时分秒，10位数字的整型，右对齐 。
+
+    private String authenticatorSourceStr;
+    
+    
+    public String getAuthenticatorSourceStr() {
+		return authenticatorSourceStr;
+	}
+
+	public void setAuthenticatorSourceStr(String authenticatorSourceStr) {
+		this.authenticatorSourceStr = authenticatorSourceStr;//new String(this.authenticatorSource);
+	}
+
+	public String getSourceAddr() {
+        return sourceAddr;
+    }
+
+    public void setSourceAddr(String sourceAddr) {
+        this.sourceAddr = sourceAddr;
+    }
+
+    public byte[] getAuthenticatorSource() {
+        return authenticatorSource;
+    }
+
+    public void setAuthenticatorSource(byte[] authenticatorSource) {
+        this.authenticatorSource = authenticatorSource;
+        this.authenticatorSourceStr = Utils.bytes2Hex(this.authenticatorSource);
+    }
+
+    public byte getVersion() {
+        return version;
+    }
+
+    public void setVersion(byte version) {
+        this.version = version;
+    }
+
+    public int getTimestamp() {
+        return timestamp;
+    }
+
+    public void setTimestamp(int timestamp) {
+        this.timestamp = timestamp;
+    }
+}

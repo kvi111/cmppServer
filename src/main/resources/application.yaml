@@ -1,0 +1,14 @@
+spring: 
+  profiles:
+    active: dev
+  jackson:
+    date-format: yyyy-MM-dd HH:mm:ss
+    time-zone: Asia/Shanghai
+application:
+  name: cmpp-gateway
+  version: 1.0.0
+
+#gatewar config
+gatewar:
+  port: 7891
+  clientConfig: [{"spIp":"127.0.0.1","spId":"100861","sharedSecret":"100861","spCode":"106510086","serviceId":"test","version":"48"}]

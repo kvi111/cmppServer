@@ -1,0 +1,85 @@
+/**
+ * Project Name cmpp-gateway
+ * File Name GateWayException.java
+ * Package Name com.kvi.cmpp.gateway.exception
+ * Create Time 2018年3月19日
+ * Create by name：kvi
+ * Copyright © 2015, 2017, kvi. All rights reserved.
+ */
+package com.kvi.cmpp.gateway.exception;
+
+/** 
+ * ClassName: GateWayException.java <br>
+ * Description: <br>
+ * @author name：kvi <br>
+ * Create Time: 2018年3月19日<br>
+ */
+public class GateWayException extends RuntimeException {
+    /**
+     * Copyright © 2015, 2017, kvi. All rights reserved.
+     */
+    private static final long serialVersionUID = 1L;
+    protected Integer         errorCode;
+
+    public GateWayException(Throwable cause) {
+        this(null, null, cause);
+    }
+
+    public GateWayException(Integer errorCode) {
+        this(errorCode, null, null);
+    }
+
+    public GateWayException(String errorMessage) {
+        this(null, errorMessage, null);
+    }
+
+    public GateWayException(Integer errorCode, Throwable cause) {
+        this(errorCode, null, cause);
+    }
+
+    public GateWayException(String errorMessage, Throwable cause) {
+        this(null, errorMessage, cause);
+    }
+
+    public GateWayException(Integer errorCode, String errorMessage) {
+        this(errorCode, errorMessage, null);
+    }
+
+    public GateWayException(Integer errorCode, String errorMessage, Throwable cause) {
+        super(errorMessage, cause);
+        this.errorCode = errorCode;
+
+    }
+
+    /** 
+     * Description：
+     * @param expression 条件成立抛出异常
+     * @param errorCode
+     * @param errorMessage
+     * @return void
+     * @author name：kvi
+     **/
+    public static void checkCondition(boolean expression, String errorMessage) {
+        if (expression) {
+            throw new GateWayException(errorMessage);
+        }
+    }
+
+    /** 
+     * Description：
+     * @param expression 条件成立抛出异常
+     * @param errorCode
+     * @param errorMessage
+     * @return void
+     * @author name：kvi
+     **/
+    public static void checkCondition(boolean expression, Integer errorCode, String errorMessage) {
+        if (expression) {
+            throw new GateWayException(errorCode, errorMessage);
+        }
+    }
+
+    public Integer getErrorCode() {
+        return errorCode;
+    }
+}
